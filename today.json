@@ -1,0 +1,70 @@
+{
+  "date": "2025-12-01",
+  "ticker": "ARMN",
+  "company_name": "Aris Mining Corporation",
+  "cards": [
+    {
+      "type": "PROFILE",
+      "title": "ARMN",
+      "tag": "Company Info",
+      "summary": "Aris Mining Corporation",
+      "description": "Aris Mining Corporation은 주로 콜롬비아와 가이아나에서 금광을 운영하고 개발하는 금광 회사입니다.",
+      "quiz": "분석을 시작할까요? (O)",
+      "answer": "O",
+      "comment": "Let's go!"
+    },
+    {
+      "type": "CONTEXT",
+      "title": "Round 1: 차트 진단",
+      "tag": "Technical",
+      "summary": "과매수 영역에 진입했지만, 추세 지지 전략 유효",
+      "description": "현재 주가 $14.04이며, RSI(14)가 89.16으로 과매수 구간에 진입했습니다. 20일 이동평균선(SMA20)은 $11.32로, 현재 주가가 SMA20 위에 위치하며 상승 추세를 유지하고 있습니다. 거래량 비율은 1.0x로 평소 수준을 유지하고 있습니다. 과매수 구간 진입은 단기 조정 가능성을 시사하지만, 강한 상승 추세를 감안할 때 SMA20 지지 여부가 중요합니다.",
+      "quiz": "현재 RSI(14)가 70 이상이므로, 곧 하락 추세로 전환될 것이다.",
+      "answer": "X",
+      "comment": "RSI가 70 이상이라고 무조건 하락 추세로 전환되는 것은 아닙니다. 강한 상승 추세에서는 RSI가 높은 수준을 유지하며 추가 상승이 나올 수도 있습니다. 다른 지표와 함께 종합적으로 판단해야 합니다.",
+      "image": "chart_tech.png"
+    },
+    {
+      "type": "CONTEXT",
+      "title": "Round 2: 비즈니스 모델 분석",
+      "tag": "Business Model",
+      "summary": "금 채굴 및 판매 수익 구조",
+      "description": "Aris Mining Corporation은 금광을 개발하고 채굴하여 금을 판매하는 방식으로 수익을 창출합니다. 콜롬비아의 Segovia Operations와 가이아나의 Toroparu 프로젝트가 주요 수익원입니다. 금 가격 변동에 민감하게 반응하며, 채굴 비용 효율성이 수익성에 큰 영향을 미칩니다. 추가적으로 신규 광산 개발 및 탐사를 통해 장기적인 성장 동력을 확보하려 노력합니다.",
+      "quiz": "Aris Mining Corporation의 주요 수익원은 다이아몬드 판매이다.",
+      "answer": "X",
+      "comment": "Aris Mining Corporation의 주요 수익원은 금 판매입니다.",
+      "image": "chart_tech.png"
+    },
+    {
+      "type": "CONTEXT",
+      "title": "Round 3: 펀더멘털 분석",
+      "tag": "Fundamental",
+      "summary": "PER, PBR 모두 높은 편",
+      "description": "PER이 51.99로 높은 수준입니다. 이는 현재 주가가 기업의 수익에 비해 고평가되어 있다는 것을 의미합니다. PBR 역시 2.52로, 회사의 순자산 가치에 비해 주가가 높게 평가받고 있습니다. 높은 PER과 PBR은 성장 기대감이 반영된 결과일 수도 있지만, 투자 시 주의가 필요합니다.",
+      "quiz": "PER이 높을수록 저평가된 주식이다.",
+      "answer": "X",
+      "comment": "PER이 높을수록 고평가된 주식일 가능성이 높습니다.",
+      "image": "chart_tech.png"
+    },
+    {
+      "type": "NEWS",
+      "title": "Round 4: 뉴스 분석",
+      "tag": "News",
+      "summary": "최근 뉴스 없음. (가정: 금 가격 상승 뉴스)",
+      "description": "최근 Aris Mining Corporation 관련 특정 뉴스는 없지만, 가정적으로 금 가격 상승 뉴스가 발표되었다고 가정합니다. 금 가격 상승은 Aris Mining Corporation의 수익성 개선으로 이어질 가능성이 높아 주가에 긍정적인 영향을 미칠 수 있습니다.",
+      "quiz": "(가정) 금 가격 상승 뉴스는 Aris Mining Corporation에 악재이다.",
+      "answer": "X",
+      "comment": "금 가격 상승은 금광 기업인 Aris Mining Corporation에 호재로 작용할 가능성이 높습니다."
+    },
+    {
+      "type": "STRATEGY",
+      "title": "Final: 매매 전략",
+      "tag": "Strategy",
+      "summary": "추세 지지 전략 유지, 분할 매수 및 손절가 설정",
+      "description": "현재 주가가 상승 추세를 유지하고 있지만, RSI 과매수 구간 진입 및 높은 PER/PBR을 감안할 때 신중한 접근이 필요합니다. 추세 지지 전략을 유지하되, SMA20($11.32) 부근에서 분할 매수를 고려하고, SMA20 이탈 시 손절하는 전략이 유효합니다. 만약 금 가격 상승 뉴스 발생 시 추가 상승을 기대해 볼 수 있지만, 고평가 상태이므로 비중 조절에 유의해야 합니다.",
+      "quiz": "SMA20 지지 시 매도하는 것이 안전하다.",
+      "answer": "X",
+      "comment": "SMA20은 지지선 역할을 할 수 있으므로, 지지 시 매수 관점으로 접근하는 것이 일반적입니다. 다만, SMA20을 이탈할 경우 손절하는 것이 좋습니다."
+    }
+  ]
+}

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hunter Pro</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; background-color: #000; 
+            font-family: -apple-system, BlinkMacSystemFont, "Pretendard", Roboto, sans-serif;
+            color: white; height: 100vh; overflow: hidden; 
+            display: flex; justify-content: center; align-items: center; 
+        }
+        
+        .app-frame { 
+            width: 100%; max-width: 420px; height: 100%; max-height: 900px; 
+            background-color: #121212; position: relative; 
+            display: flex; flex-direction: column; overflow: hidden; 
+            border: 1px solid #333; 
+        }
+        @media (min-width: 480px) { 
+            .app-frame { border-radius: 30px; height: 90vh; box-shadow: 0 0 50px rgba(255,255,255,0.1); } 
+        }
+
+        /* 화면 전환 */
+        .view-section { display: none; flex-direction: column; height: 100%; width: 100%; position: absolute; top:0; left:0; background: #121212; z-index: 1;}
+        .view-section.active { display: flex; z-index: 10; }
+
+        /* 홈 화면 */
+        .home-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 30px; overflow-y: auto;}
+        .app-title { 
+            font-size: 40px; font-weight: 900; text-align: center; margin-bottom: 5px; 
+            background: linear-gradient(to right, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer; user-select: none; /* 클릭 가능하게 변경 */
+        }
+        .limit-info { text-align: center; font-size: 13px; color: #666; margin-bottom: 30px; }
+
+        .mode-card { 
+            background: #1e1e1e; border: 1px solid #333; border-radius: 20px; 
+            padding: 25px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; 
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .mode-card:active { transform: scale(0.98); background: #252525; }
+        .mode-card.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+
+        .mode-icon { font-size: 32px; margin-right: 15px; }
+        .mode-text h3 { margin: 0; font-size: 20px; }
+        .mode-text p { margin: 5px 0 0 0; font-size: 13px; color: #888; }
+        
+        .stamina { font-size: 12px; font-weight: bold; color: #00ff88; background: rgba(0, 255, 136, 0.1); padding: 4px 8px; border-radius: 10px; }
+        .stamina.empty { color: #ff5f5f; background: rgba(255, 95, 95, 0.1); }
+
+        /* 퀴즈 화면 */
+        .top-bar { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #222; background: #121212; z-index: 20; flex-shrink: 0;}
+        .progress-bar { width: 100%; height: 4px; background: #222; flex-shrink: 0;}
+        .progress-fill { height: 100%; background: #00ff88; width: 0%; transition: width 0.3s; }
+
+        .card-area { flex: 1; position: relative; padding: 15px; display: flex; flex-direction: column; overflow: hidden; }
+        .card { 
+            flex: 1; background: #1e1e1e; border-radius: 20px; padding: 20px; 
+            display: flex; flex-direction: column; 
+            border: 1px solid #333; overflow: hidden; /* 내부 스크롤을 위해 hidden */
+        }
+        
+        .card-header-area { flex-shrink: 0; margin-bottom: 10px; }
+        .chart-img { width: 100%; height: auto; max-height: 180px; object-fit: contain; background: #000; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444; }
+        .tag { display: inline-block; background: #333; color: #aaa; padding: 4px 8px; border-radius: 6px; font-size: 11px; margin-bottom: 10px; font-weight: bold; }
+        .card-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; line-height: 1.3; }
+        .summary { font-size: 15px; color: #ff5f5f; font-weight: 700; margin-bottom: 10px; }
+        
+        .card-body-area { flex-grow: 1; overflow-y: auto; padding-right: 5px; margin-bottom: 10px; }
+        .card-desc { font-size: 15px; line-height: 1.6; color: #ddd; white-space: pre-line; }
+        
+        .card-footer-area { flex-shrink: 0; }
+        .quiz-section { padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid #444; }
+        .quiz-q { font-size: 16px; font-weight: bold; color: #fff; margin: 0; line-height: 1.4; }
+
+        .bottom-bar { padding: 15px; background: #121212; border-top: 1px solid #222; z-index: 20; flex-shrink: 0;}
+        .btn-group { display: flex; gap: 10px; height: 50px; }
+        .btn-ox { flex: 1; border: none; border-radius: 12px; font-size: 20px; font-weight: 900; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .btn-x { background: #2a2a2a; color: #ff5f5f; border: 2px solid #ff5f5f; }
+        .btn-o { background: #2a2a2a; color: #4caf50; border: 2px solid #4caf50; }
+        .btn-next { background: #fff; color: #000; font-size: 16px; width: 100%; display: none; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
+
+        /* 히스토리 & 서머리 */
+        .history-list { flex: 1; overflow-y: auto; padding: 20px; }
+        .date-header { font-size: 12px; color: #666; margin: 15px 0 5px 0; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .hist-item { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid #222; }
+        .hist-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 5px; font-weight: bold; }
+        .tag-rocket { background: rgba(255, 75, 75, 0.2); color: #ff4b4b; }
+        .tag-seed { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+
+        .summary-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .summary-ticker { font-size: 40px; font-weight: 900; color: #00ff88; margin: 20px 0; }
+        .btn-restart { width: 80%; padding: 15px; background: #333; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        /* 유틸리티 */
+        .overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; z-index: 100; padding: 30px; text-align: center; }
+        .wiki-word { color: #86efac; border-bottom: 1px dashed rgba(134,239,172,0.5); cursor: pointer; }
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:999; display:none; justify-content:center; align-items:center; }
+        .modal img { max-width:100%; max-height:100%; }
+        .wiki-modal { position: absolute; bottom: 0; left: 0; width: 100%; background: #222; border-top: 2px solid #00ff88; border-radius: 25px 25px 0 0; padding: 30px; z-index: 200; transform: translateY(100%); transition: transform 0.3s; box-shadow: 0 -10px 50px rgba(0,0,0,0.8); }
+        .wiki-modal.show { transform: translateY(0); }
+        
+        .loader-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid #00ff88; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .slide-out { transform: translateX(120%) rotate(10deg); opacity: 0; transition: 0.3s; }
+    </style>
+</head>
+<body>
+
+<div class="app-frame">
+
+    <div id="view-home" class="view-section active">
+        <div class="home-container">
+            <div class="app-title" onclick="resetCount()">MARKET<br>HUNTER</div>
+            <div class="limit-info" id="today-date">0000.00.00</div>
+
+            <div class="mode-card" id="card-rocket" onclick="runAnalysis('ROCKET')">
+                <div style="display:flex; align-items:center;">
+                    <div class="mode-icon">🚀</div>
+                    <div class="mode-text"><h3>ROCKET</h3><p>급등주 / 주도주</p></div>
+                </div>
+                <div class="stamina" id="stamina-rocket">3/3</div>
+            </div>
+
+            <div class="mode-card" id="card-seed" onclick="runAnalysis('SEED')">
+                <div style="display:flex; align-items:center;">
+                    <div class="mode-icon">🌱</div>
+                    <div class="mode-text"><h3>SEED</h3><p>유망주 / 바닥권</p></div>
+                </div>
+                <div class="stamina" id="stamina-seed">3/3</div>
+            </div>
+
+            <div class="mode-card" onclick="showHistory()" style="margin-top:20px; background:none; border:1px dashed #444; justify-content:center;">
+                <div style="display:flex; align-items:center;">
+                    <div class="mode-icon" style="font-size:24px;">📂</div>
+                    <div class="mode-text"><h3>History Archive</h3></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-loading" class="view-section">
+        <div class="loader-box">
+            <div class="spinner"></div>
+            <h3>시장 분석 중...</h3>
+            <p style="color:#666;">AI가 데이터를 수집하고 있습니다.</p>
+        </div>
+    </div>
+
+    <div id="view-quiz" class="view-section">
+        <div class="top-bar">
+            <div style="cursor:pointer;" onclick="goHome()">🏠 홈</div>
+            <div style="font-weight:bold;" id="page-idx">1 / 5</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+        
+        <div class="card-area" id="card-wrapper">
+            </div>
+
+        <div class="bottom-bar">
+            <div class="btn-group">
+                <button class="btn-ox btn-x" onclick="check('X')">X</button>
+                <button class="btn-ox btn-o" onclick="check('O')">O</button>
+                <button class="btn-next" id="btn-next" onclick="nextCard()">다음 👉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-summary" class="view-section">
+        <div class="summary-box">
+            <div style="font-size:60px;">🔥</div>
+            <h2>분석 완료</h2>
+            <div class="summary-ticker" id="res-ticker">TICKER</div>
+            <p style="color:#888;">오늘의 학습이 끝났습니다.</p>
+            <div style="width:100%; margin-top:30px;">
+                <button class="btn-restart" onclick="goHome()">메인으로</button>
+                <button class="btn-restart" style="background:#222; margin-top:10px; color:#888;" onclick="location.reload()">다시 보기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-history" class="view-section">
+        <div class="top-bar">
+            <span onclick="goHome()" style="cursor:pointer;">← 뒤로가기</span>
+            <span style="font-weight:bold;">History</span>
+        </div>
+        <div class="history-list" id="history-list"></div>
+    </div>
+
+    <div id="overlay" class="overlay">
+        <div style="font-size:60px; margin-bottom:20px;" id="fb-icon"></div>
+        <div style="font-size:24px; font-weight:bold; margin-bottom:15px;" id="fb-title"></div>
+        <div style="font-size:16px; color:#ccc; line-height:1.6;" id="fb-cmt"></div>
+        <button class="btn-next" style="display:block; margin-top:30px; width:80%;" onclick="closeOverlay()">확인</button>
+    </div>
+    <div class="modal" id="chart-modal" onclick="this.style.display='none'"><img id="modal-img"></div>
+    <div class="wiki-modal" id="wiki-modal">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+            <div id="wiki-title" style="color:#00ff88; font-weight:bold; font-size:22px;"></div>
+            <div onclick="document.getElementById('wiki-modal').classList.remove('show')" style="cursor:pointer; font-size:24px;">✕</div>
+        </div>
+        <div id="wiki-content" style="font-size:16px; line-height:1.6; color:#ddd;"></div>
+    </div>
+
+</div>
+
+<script>
+    const MAX_DAILY = 3;
+    let cardsData = [], dictionary = {}, currentIndex = 0;
+    let resetClickCount = 0; // 리셋용 클릭 카운터
+
+    initApp();
+
+    async function initApp() {
+        document.getElementById('today-date').innerText = new Date().toLocaleDateString();
+        updateStaminaUI();
+        try {
+            const res = await fetch('database.json');
+            const data = await res.json();
+            data.forEach(item => dictionary[item.title] = item.description);
+        } catch(e){}
+    }
+
+    // [비밀 기능] 제목 3번 클릭시 리셋
+    function resetCount() {
+        resetClickCount++;
+        if(resetClickCount >= 3) {
+            const todayKey = new Date().toISOString().slice(0, 10);
+            localStorage.removeItem('usage_' + todayKey);
+            alert("사용 횟수가 초기화되었습니다!");
+            updateStaminaUI();
+            resetClickCount = 0;
+        }
+    }
+
+    function updateStaminaUI() {
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const usage = JSON.parse(localStorage.getItem('usage_' + todayKey) || '{"ROCKET":0, "SEED":0}');
+        
+        ['ROCKET', 'SEED'].forEach(m => {
+            const left = MAX_DAILY - usage[m];
+            const el = document.getElementById('stamina-' + m.toLowerCase());
+            const card = document.getElementById('card-' + m.toLowerCase());
+            
+            el.innerText = `${left}/${MAX_DAILY}`;
+            if (left <= 0) {
+                el.classList.add('empty');
+                card.classList.add('disabled');
+            } else {
+                el.classList.remove('empty');
+                card.classList.remove('disabled');
+            }
+        });
+    }
+
+    async function runAnalysis(mode) {
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const usage = JSON.parse(localStorage.getItem('usage_' + todayKey) || '{"ROCKET":0, "SEED":0}');
+        if (usage[mode] >= MAX_DAILY) return alert("오늘 횟수 초과!");
+
+        showView('view-loading');
+
+        try {
+            const res = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ mode: mode })
+            });
+            
+            if (!res.ok) throw new Error("서버 에러");
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            cardsData = data.cards.map((c, i) => ({ ...c, id: i }));
+            currentIndex = 0;
+
+            usage[mode]++;
+            localStorage.setItem('usage_' + todayKey, JSON.stringify(usage));
+            updateStaminaUI();
+
+            renderCard();
+            showView('view-quiz');
+
+        } catch (e) {
+            alert("오류: " + e.message);
+            goHome();
+        }
+    }
+
+    function renderCard() {
+        const wrapper = document.getElementById('card-wrapper');
+        wrapper.innerHTML = '';
+        
+        if (currentIndex >= cardsData.length) {
+            showSummary();
+            return;
+        }
+
+        document.getElementById('page-idx').innerText = `${currentIndex + 1} / ${cardsData.length}`;
+        document.querySelector('.progress-fill').style.width = `${((currentIndex)/cardsData.length)*100}%`;
+
+        const data = cardsData[currentIndex];
+        
+        let imgHtml = '';
+        if (data.image) {
+            imgHtml = `<img src="${data.image}" class="chart-img" onclick="expandChart(this.src)">`;
+        }
+
+        const linkedDesc = autoLink(data.description);
+        const linkedQuiz = autoLink(data.quiz);
+
+        const isProfile = data.type === 'PROFILE';
+        const btnX = document.querySelector('.btn-x');
+        const btnO = document.querySelector('.btn-o');
+        const btnNext = document.getElementById('btn-next');
+
+        if (isProfile) {
+            btnX.style.display = 'none';
+            btnO.style.display = 'none';
+            btnNext.style.display = 'block';
+            btnNext.innerText = "분석 시작 👉";
+        } else {
+            btnX.style.display = 'block';
+            btnO.style.display = 'block';
+            btnNext.style.display = 'none';
+            btnNext.innerText = "다음 👉";
+        }
+
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `
+            <div class="card-header-area">
+                <div class="tag">${data.tag}</div>
+                <div class="card-title">${data.title}</div>
+                ${imgHtml}
+                <div class="summary">${data.summary}</div>
+            </div>
+            <div class="card-body-area">
+                <div class="card-desc">${linkedDesc}</div>
+            </div>
+            <div class="card-footer-area">
+                ${!isProfile ? `<div class="quiz-section"><div class="quiz-q">Q. ${linkedQuiz}</div></div>` : ''}
+            </div>
+        `;
+        
+        if (isProfile && data.website) {
+            el.querySelector('.card-footer-area').innerHTML += `<div style="text-align:center; margin-top:10px;"><a href="${data.website}" target="_blank" style="color:#666; font-size:12px;">🌐 공식 홈페이지</a></div>`;
+        }
+
+        wrapper.appendChild(el);
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    function check(choice) {
+        const data = cardsData[currentIndex];
+        const isCorrect = (choice === data.answer.trim().substring(0,1).toUpperCase());
+        
+        document.getElementById('fb-icon').innerText = isCorrect ? "🎉" : "😅";
+        document.getElementById('fb-title').innerText = isCorrect ? "정답!" : "오답";
+        document.getElementById('fb-title').style.color = isCorrect ? "#4caf50" : "#ff5f5f";
+        document.getElementById('fb-cmt').innerText = data.comment;
+        
+        document.getElementById('overlay').style.display = 'flex';
+        
+        document.querySelector('.btn-x').style.display = 'none';
+        document.querySelector('.btn-o').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'block';
+        document.getElementById('btn-next').innerText = "다음 👉";
+    }
+
+    function closeOverlay() {
+        document.getElementById('overlay').style.display = 'none';
+        nextCard();
+    }
+
+    function nextCard() {
+        currentIndex++;
+        renderCard();
+    }
+
+    function showSummary() {
+        document.getElementById('res-ticker').innerText = cardsData[0].title;
+        showView('view-summary');
+    }
+
+    async function showHistory() {
+        showView('view-loading');
+        try {
+            const res = await fetch('history.json');
+            const history = await res.json();
+            
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+
+            const grouped = {};
+            history.forEach(h => {
+                if (!grouped[h.date]) grouped[h.date] = [];
+                grouped[h.date].push(h);
+            });
+
+            Object.keys(grouped).sort().reverse().forEach(date => {
+                const header = document.createElement('div');
+                header.className = 'date-header';
+                header.innerText = date;
+                list.appendChild(header);
+
+                grouped[date].forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'hist-item';
+                    const modeTag = item.mode === 'ROCKET' ? 
+                        `<span class="hist-tag tag-rocket">ROCKET</span>` : 
+                        `<span class="hist-tag tag-seed">SEED</span>`;
+                    
+                    el.innerHTML = `
+                        <div>
+                            <div style="font-weight:bold; color:white; font-size:16px;">${item.ticker}</div>
+                            <div style="font-size:12px; color:#888;">${item.company_name}</div>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            ${modeTag}
+                            <span style="font-size:18px; color:#666;">›</span>
+                        </div>
+                    `;
+                    el.onclick = () => {
+                        cardsData = item.cards.map((c, i) => ({ ...c, id: i }));
+                        currentIndex = 0;
+                        renderCard();
+                        showView('view-quiz');
+                    };
+                    list.appendChild(el);
+                });
+            });
+            showView('view-history');
+        } catch(e) {
+            alert("히스토리 없음");
+            goHome();
+        }
+    }
+
+    function showView(id) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+    function goHome() { showView('view-home'); updateStaminaUI(); }
+    
+   function autoLink(text) {
+        if (!text) return "";
+        
+        // 1. 사전 키워드 준비 (긴 단어부터)
+        const keys = Object.keys(dictionary).sort((a,b) => b.length - a.length);
+        if (keys.length === 0) return text;
+
+        // 2. 키워드 이스케이프 (정규식 특수문자 처리)
+        const escapedKeys = keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        
+        // 3. [핵심] HTML 태그는 건너뛰고, 텍스트 노드만 찾아서 바꾸는 정규식
+        // 설명: (>|^)는 태그가 끝난 직후나 문장 시작을 의미
+        // ([^<]*)는 태그가 시작되기 전까지의 순수 텍스트
+        // 이 안에서만 단어를 찾습니다.
+        const regex = new RegExp(`(>|^)([^<]*)(${escapedKeys.join('|')})`, 'gi');
+
+        // 4. 변환 실행 (재귀적으로 처리하지 않음)
+        // 이미 링크가 걸린 단어는 다시 건드리지 않도록 '한 번만' 실행하거나
+        // DOM 파싱 방식을 쓰는 게 가장 안전하지만, 여기선 정규식으로 태그 밖 텍스트만 타겟팅
+        
+        // 간단하면서 강력한 방법: 임시 DOM을 만들어서 텍스트 노드만 교체
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = text;
+        
+        replaceTextNodes(tempDiv, keys);
+        
+        return tempDiv.innerHTML;
+    }
+
+    // 텍스트 노드만 골라서 링크를 거는 안전한 함수
+    function replaceTextNodes(node, keywords) {
+        if (node.nodeType === 3) { // 텍스트 노드라면
+            let text = node.nodeValue;
+            let replaced = false;
+            
+            // 키워드 찾기
+            for (let key of keywords) {
+                if (text.includes(key)) {
+                    // 이미 링크된 단어인지 확인 (중복 방지)
+                    // 여기서는 단순하게 첫 번째 발견된 것만 바꿈
+                    const span = document.createElement('span');
+                    span.className = 'wiki-word';
+                    span.innerText = key;
+                    span.setAttribute('onclick', `showWiki('${key}', event)`);
+                    
+                    const parts = text.split(key);
+                    const fragment = document.createDocumentFragment();
+                    
+                    fragment.appendChild(document.createTextNode(parts[0]));
+                    fragment.appendChild(span);
+                    fragment.appendChild(document.createTextNode(parts.slice(1).join(key)));
+                    
+                    node.parentNode.replaceChild(fragment, node);
+                    replaced = true;
+                    break; // 한 노드에 하나만 링크 (충돌 방지)
+                }
+            }
+        } else if (node.nodeType === 1 && node.tagName !== 'SPAN' && node.tagName !== 'A') {
+            // 요소 노드라면 (단, 이미 링크인 span이나 a는 제외) 자식들을 탐색
+            // childNodes를 배열로 변환해서 순회 (실시간 변경 방지)
+            Array.from(node.childNodes).forEach(child => replaceTextNodes(child, keywords));
+        }
+    }
+
+    function showWiki(word, e) {
+        e.stopPropagation();
+        document.getElementById('wiki-title').innerText = word;
+        document.getElementById('wiki-content').innerText = dictionary[word] || "내용 없음";
+        document.getElementById('wiki-modal').classList.add('show');
+    }
+    
+    function expandChart(src) {
+        document.getElementById('chart-modal').style.display = 'flex';
+        document.getElementById('modal-img').src = src;
+    }
+</script>
+</body>
+</html>
